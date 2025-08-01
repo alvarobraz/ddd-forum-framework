@@ -1,30 +1,26 @@
-import { Answer } from '@/domain/forum/enterprise/entities/answer'
-import { AnswersRepository } from '../repositories/answers-repository'
 import { Either, left, right } from '@/core/either'
+import { AnswersRepository } from '../repositories/answers-repository'
 import { ResourceNotFoundError } from '@/domain/forum/application/use-cases/errors/resource-not-found-error'
 import { NotAllowedError } from '@/domain/forum/application/use-cases/errors/not-allowed-error'
 
-interface EditAnswerUseCaseRequest {
+interface DeleteAnswerUseCaseRequest {
   authorId: string
   answerId: string
-  content: string
 }
 
-type EditAnswerUseCaseResponse = Either<
+type DeleteAnswerUseCaseResponse = Either<
   ResourceNotFoundError | NotAllowedError,
-  {
-    answer: Answer
-  }
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  {}
 >
 
-export class EditAnswerUseCase {
+export class DeleteAnswerUseCase {
   constructor(private answersRepository: AnswersRepository) {}
 
   async execute({
-    authorId,
     answerId,
-    content,
-  }: EditAnswerUseCaseRequest): Promise<EditAnswerUseCaseResponse> {
+    authorId,
+  }: DeleteAnswerUseCaseRequest): Promise<DeleteAnswerUseCaseResponse> {
     const answer = await this.answersRepository.findById(answerId)
 
     if (!answer) {
@@ -35,12 +31,8 @@ export class EditAnswerUseCase {
       return left(new NotAllowedError())
     }
 
-    answer.content = content
+    await this.answersRepository.delete(answer)
 
-    await this.answersRepository.save(answer)
-
-    return right({
-      answer,
-    })
+    return right({})
   }
 }
